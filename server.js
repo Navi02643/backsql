@@ -7,6 +7,7 @@ require("./config/db");
 require("colors");
 
 app.set("port", process.env.PORT || 5000);
+
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use((req, res, next) => {
