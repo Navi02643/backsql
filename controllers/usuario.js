@@ -4,9 +4,86 @@ const app = express();
 
 let conn = require("../config/db");
 
+//RUTA PARA OBTENER LOS USUARIOS INACTIVOS
+app.get("/INA", async (req, res) => {
+  try {
+    conn.query("SELECT * FROM usuario WHERE usuarioestado=0", (err, rows) => {
+      if (err) {
+        return res.status(500).send({
+          estatus: "500",
+          err: true,
+          msg: "Ocurrio un error.",
+          err,
+        });
+      } else if (rows.length > 0) {
+        return res.status(500).send({
+          estatus: "200",
+          err: false,
+          msg: "Usuarios inactivos.",
+          rows,
+        });
+      } else {
+        return res.status(500).send({
+          estatus: "200",
+          err: false,
+          msg: "Sin usuarios inactivos.",
+        });
+      }
+    });
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA PARA OBTENER LOS USUARIOS ACTIVOS
+app.get("/ACT", async (req, res) => {
+  try {
+    conn.query("SELECT * FROM usuario WHERE usuarioestado=1", (err, rows) => {
+      if (err) {
+        return res.status(500).send({
+          estatus: "500",
+          err: true,
+          msg: "Ocurrio un error.",
+          err,
+        });
+      } else if (rows.length > 0) {
+        return res.status(500).send({
+          estatus: "200",
+          err: false,
+          msg: "Usuarios Activos.",
+          rows,
+        });
+      } else {
+        return res.status(500).send({
+          estatus: "200",
+          err: false,
+          msg: "Sin usuarios Activos.",
+        });
+      }
+    });
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA PARA DAR DE ALTA USUARIOS
 app.post("/", async (req, res) => {
   try {
-    // DECLARAMOS LOS PARAMETROS QUE VAMOS A RECIBIR
+    // DECLARAMOS LAS VARIABLES QUE VAMOS A RECIBIR
     let {
       usuarionombres,
       usuarioapellidoP,
@@ -21,6 +98,18 @@ app.post("/", async (req, res) => {
 
     // ENCRIPTAMOS LA CONTRASEÑA
     usuariocontrasenya = bcrypt.hashSync(usuariocontrasenya, 10);
+
+    console.log(
+      usuarionombres,
+      usuarioapellidoP,
+      usuarioapellidoM,
+      usuarioemail,
+      usuariotelefono,
+      IDrol,
+      usuariocontrasenya,
+      IDcargo,
+      usuariosalario
+    );
 
     // VALIDAMOS QUE EL USUARIO INGRESE SU NOMBRE COMPLETO
     if (
@@ -51,7 +140,7 @@ app.post("/", async (req, res) => {
       });
     }
     // VALIDAMOS QUE EL USUARIO INGRESE UNA CONTRASEÑA VALIDA
-    else if ((usuariocontrasenya = "")) {
+    else if (usuariocontrasenya == "") {
       return res.status(200).send({
         estatus: "500",
         err: true,
@@ -73,7 +162,7 @@ app.post("/", async (req, res) => {
         (err, rows) => {
           // SI OCURRE UN ERROR CON LA CONSULTA SE MUESTRA EL ERROR
           if (err) {
-            res.status(200).send({
+            return res.status(200).send({
               estatus: "500",
               err: true,
               msg: "Ocurrio un error.",
@@ -81,7 +170,7 @@ app.post("/", async (req, res) => {
             });
             // SI SE ENCONTRO EL CORREO SE MUESTRA EL MENSAJE DE CORREO REGISTRADO
           } else if (rows.length > 0) {
-            res.status(200).send({
+            return res.status(200).send({
               estatus: "500",
               err: true,
               msg: "Correo ya registrado.",
@@ -103,14 +192,14 @@ app.post("/", async (req, res) => {
               ],
               (err) => {
                 if (err) {
-                  res.status(200).send({
+                  return res.status(200).send({
                     estatus: "500",
                     err: true,
                     msg: "Ocurrio un error.",
                     err,
                   });
                 } else {
-                  res.status(200).send({
+                  return res.status(200).send({
                     estatus: "200",
                     err: false,
                     msg: `Se inserto al usuario ${usuarionombres} ${usuarioapellidoP} ${usuarioapellidoM} con exito.`,
@@ -121,7 +210,7 @@ app.post("/", async (req, res) => {
           }
         }
       );
-    }    
+    }
   } catch (err) {
     return res.status(500).send({
       estatus: "500",
@@ -134,10 +223,303 @@ app.post("/", async (req, res) => {
   }
 });
 
-app.put("", async (req, res) => {
+// RUTA PARA MODIFICAR DATOS DEL USUARIO SIN CONTRASEÑA
+app.put("/", async (req, res) => {
   try {
+    // DECLARAMOS LAS VARIABLES QUE VAMOS A RECIBIR
+    let {
+      usuarionombres,
+      usuarioapellidoP,
+      usuarioapellidoM,
+      usuarioemail,
+      usuariotelefono,
+      IDrol,
+      IDcargo,
+      usuariosalario,
+    } = req.body;
+    // DECLARAMOS EL PARAMETRO ID
+    let IDusuario = req.query.IDusuario;
+    // SI SE ENVIA UN ID VACIO SE INDICA
+    if (IDusuario == "") {
+      return res.status(200).send({
+        estatus: "500",
+        err: true,
+        msg: "Se necesita el ID del usuario.",
+        err,
+      });
+    } else {
+      // BUSCAMOS AL USUARIO POR EL ID
+      conn.query(
+        "SELECT * FROM usuario WHERE IDusuario=?",
+        [IDusuario],
+        (err, rows) => {
+          // SI OCURRE UN ERROR CON LA CONSULTA SE MUESTRA
+          if (err) {
+            return res.status(500).send({
+              estatus: "500",
+              err: true,
+              msg: "Ocurrio un error.",
+              err,
+            });
+          } else {
+            // SI ALGUNO DE LOS CAMPOS ESTA VACIO SE LE ASIGNA EL VALOR QUE TIENE EN LA BASE DE DATOS
+            if (usuarionombres == "") {
+              usuarionombres = rows[0].usuarionombres;
+            }
+            if (usuarioapellidoP == "") {
+              usuarioapellidoP = rows[0].usuarioapellidoP;
+            }
+            if (usuarioapellidoM == "") {
+              usuarioapellidoM = rows[0].usuarioapellidoM;
+            }
+            if (usuarioemail == "") {
+              usuarioemail = rows[0].usuarioemail;
+            }
+            if (usuariotelefono == "") {
+              usuariotelefono = rows[0].usuariotelefono;
+            }
+            if (IDrol == "") {
+              IDrol = rows[0].IDrol;
+            }
+            if (IDcargo == "") {
+              IDcargo = rows[0].IDcargo;
+            }
+            if (usuariosalario == "") {
+              usuariosalario = rows[0].usuariosalario;
+            }
+            // SE ACTUALIZA EL USUARIO
+            conn.query(
+              "UPDATE usuario SET usuarionombres=?,usuarioapellidoP=?,usuarioapellidoM=?,usuarioemail=?,usuariotelefono=?,IDrol=?,IDcargo=?,usuariosalario=? WHERE IDusuario=?",
+              [
+                usuarionombres,
+                usuarioapellidoP,
+                usuarioapellidoM,
+                usuarioemail,
+                usuariotelefono,
+                IDrol,
+                IDcargo,
+                usuariosalario,
+                IDusuario,
+              ],
+              (err) => {
+                // SI HUBO UN ERROR SE MUESTRA
+                if (err) {
+                  return res.status(500).send({
+                    estatus: "500",
+                    err: true,
+                    msg: "Ocurrio un error.",
+                    err,
+                  });
+                  // SI NO HUBO UN ERROR SE NOTIFICA QUE EL CLIENTE SE ACTUALIZO
+                } else {
+                  return res.status(200).send({
+                    estatus: "500",
+                    err: false,
+                    msg: "Usuario actualizado con exito.",
+                  });
+                }
+              }
+            );
+          }
+        }
+      );
+    }
   } catch (err) {
-    res.status(500).send({
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA PARA MODIFICAR LA CONTRASEÑA DEL USUARIOS
+app.put("/pass", async (req, res) => {
+  try {
+    // DECLARAMOS LAS VARIABLES A USAR
+    let {
+      usuariocontrasenyaold,
+      usuariocontrasenyanew,
+      usuariocontrasenyaconf,
+    } = req.body;
+    // DECLARAMOS EL PARAMETRO ID
+    let IDusuario = req.query.IDusuario;
+    // SI SE ENVIA UN ID VACIO SE INDICA
+    console.log(
+      usuariocontrasenyaold,
+      usuariocontrasenyanew,
+      usuariocontrasenyaconf
+    );
+    if (IDusuario == "") {
+      return res.status(200).send({
+        estatus: "500",
+        err: true,
+        msg: "Se necesita el ID del usuario.",
+        err,
+      });
+    } else {
+      conn.query(
+        "SELECT usuariocontrasenya FROM usuario WHERE IDusuario=?",
+        [IDusuario],
+        (err, rows) => {
+          if (err) {
+            return res.status(200).send({
+              estatus: "500",
+              err: true,
+              msg: "Ocurrio un error.",
+              err,
+            });
+          } else {
+            let coincide = bcrypt.compareSync(
+              usuariocontrasenyaold,
+              rows[0].usuariocontrasenya
+            );
+            if (usuariocontrasenyanew == usuariocontrasenyaconf) {
+              if (coincide == true) {
+                // ENCRIPTAMOS LA CONTRASEÑA
+                usuariocontrasenyanew = bcrypt.hashSync(
+                  usuariocontrasenyanew,
+                  10
+                );
+                conn.query(
+                  "UPDATE usuario SET usuariocontrasenya=? WHERE IDusuario=?",
+                  [usuariocontrasenyanew, IDusuario],
+                  (err) => {
+                    if (err) {
+                      return res.status(200).send({
+                        estatus: "500",
+                        err: true,
+                        msg: "Ocurrio un error.",
+                        err,
+                      });
+                    } else {
+                      return res.status(200).send({
+                        estatus: "200",
+                        err: false,
+                        msg: "Contraseña actuaizada con exito.",
+                      });
+                    }
+                  }
+                );
+              } else {
+                return res.status(200).send({
+                  estatus: "500",
+                  err: false,
+                  msg: "La contraseña es diferente a la actual.",
+                });
+              }
+            } else {
+              return res.status(200).send({
+                estatus: "500",
+                err: false,
+                msg: "Las contraseñas no coinciden.",
+              });
+            }
+          }
+        }
+      );
+    }
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA PARA INACTIVAR USUARIO
+app.delete("/", async (req, res) => {
+  try {
+    // DECLARAMOS EL PARAMETRO ID
+    let IDusuario = req.query.IDusuario;
+    // SI SE ENVIA UN ID VACIO SE INDICA
+    if (IDusuario == "") {
+      return res.status(200).send({
+        estatus: "500",
+        err: true,
+        msg: "Se necesita el ID del usuario.",
+        err,
+      });
+    } else {
+      // SE EJECUTA LA QUERY PARA DESACTIVAR EL USUARIO
+      conn.query(
+        "UPDATE usuario SET usuarioestado=0 WHERE IDusuario=?",
+        [IDusuario],
+        (err) => {
+          if (err) {
+            return res.status(500).send({
+              estatus: "500",
+              err: true,
+              msg: "Ocurrio un error.",
+              err,
+            });
+          } else {
+            return res.status(200).send({
+              estatus: "500",
+              err: false,
+              msg: "Usuario desactivado con exito.",
+            });
+          }
+        }
+      );
+    }
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA PARA ELIMINAR LOS USUARIOS
+app.delete("/borrar", async (req, res) => {
+  try {
+    // DECLARAMOS EL PARAMETRO ID
+    let IDusuario = req.query.IDusuario;
+    // SI SE ENVIA UN ID VACIO SE INDICA
+    if (IDusuario == "") {
+      return res.status(200).send({
+        estatus: "500",
+        err: true,
+        msg: "Se necesita el ID del usuario.",
+        err,
+      });
+    } else {
+      conn.query(
+        "DELETE FROM usuario WHERE IDusuario=?",
+        [IDusuario],
+        (err) => {
+          if (err) {
+            return res.status(200).send({
+              estatus: "500",
+              err: true,
+              msg: "Se necesita el ID del usuario.",
+              err,
+            });
+          } else {
+            return res.status(200).send({
+              estatus: "500",
+              err: true,
+              msg: "Se elimino al usuario correctamente.",
+              err,
+            });
+          }
+        }
+      );
+    }
+  } catch (err) {
+    return res.status(500).send({
       estatus: "500",
       err: true,
       msg: "Ocurrio un error.",
