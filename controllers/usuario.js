@@ -7,8 +7,10 @@ let conn = require("../config/db");
 //RUTA PARA OBTENER LOS USUARIOS INACTIVOS
 app.get("/INA", async (req, res) => {
   try {
+    // SE EJECUTA UNA QUERY PARA OBTENER A LOS USUARIOS INACTIVOS
     conn.query("SELECT * FROM usuario WHERE usuarioestado=0", (err, rows) => {
       if (err) {
+        // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
         return res.status(500).send({
           estatus: "500",
           err: true,
@@ -16,15 +18,17 @@ app.get("/INA", async (req, res) => {
           err,
         });
       } else if (rows.length > 0) {
-        return res.status(500).send({
+        // SI LOS USARIOS OBTENIDOS SON MAYORES O IGUALES A 1 SE MUNESTRAN
+        return res.status(200).send({
           estatus: "200",
           err: false,
           msg: "Usuarios inactivos.",
           rows,
         });
       } else {
-        return res.status(500).send({
-          estatus: "200",
+        // SI NO EXISTEN USUARIOS INACTIVOS SE MUESTRA EL MENSAJE
+        return res.status(204).send({
+          estatus: "204",
           err: false,
           msg: "Sin usuarios inactivos.",
         });
@@ -45,8 +49,10 @@ app.get("/INA", async (req, res) => {
 // RUTA PARA OBTENER LOS USUARIOS ACTIVOS
 app.get("/ACT", async (req, res) => {
   try {
+    // SE EJECUTA EL QUERY PARA OBTENER A LOS USUARIOS ACTIVOS
     conn.query("SELECT * FROM usuario WHERE usuarioestado=1", (err, rows) => {
       if (err) {
+        // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
         return res.status(500).send({
           estatus: "500",
           err: true,
@@ -54,15 +60,17 @@ app.get("/ACT", async (req, res) => {
           err,
         });
       } else if (rows.length > 0) {
-        return res.status(500).send({
+        // SI LOS USUARIOS ACTIVOS SON MAYOR O IGUAL A UNO SE MUESTRAN
+        return res.status(200).send({
           estatus: "200",
           err: false,
           msg: "Usuarios Activos.",
           rows,
         });
       } else {
-        return res.status(500).send({
-          estatus: "200",
+        // SI NO HAY USUARIOS ACTIVOS SE MUESTRA EL MENSAJE
+        return res.status(204).send({
+          estatus: "204",
           err: false,
           msg: "Sin usuarios Activos.",
         });
@@ -99,57 +107,45 @@ app.post("/", async (req, res) => {
     // ENCRIPTAMOS LA CONTRASEÑA
     usuariocontrasenya = bcrypt.hashSync(usuariocontrasenya, 10);
 
-    console.log(
-      usuarionombres,
-      usuarioapellidoP,
-      usuarioapellidoM,
-      usuarioemail,
-      usuariotelefono,
-      IDrol,
-      usuariocontrasenya,
-      IDcargo,
-      usuariosalario
-    );
-
     // VALIDAMOS QUE EL USUARIO INGRESE SU NOMBRE COMPLETO
     if (
       usuarionombres == "" ||
       usuarioapellidoP == "" ||
       usuarioapellidoM == ""
     ) {
-      return res.status(200).send({
-        estatus: "500",
+      return res.status(100).send({
+        estatus: "100",
         err: true,
         msg: "Se requiere tu nombre completo.",
       });
     }
     // VALIDAMOS QUE EL USUARIO INGRESE UN CORREO
     else if (usuarioemail == "") {
-      return res.status(200).send({
-        estatus: "500",
+      return res.status(100).send({
+        estatus: "100",
         err: true,
         msg: "Se requiere un correo.",
       });
     }
     // VALIDAMOS QUE EL USUARIO INGRESE EL CARGO Y EL ROL
     else if (IDrol == "" || IDcargo == "") {
-      return res.status(200).send({
-        estatus: "500",
+      return res.status(100).send({
+        estatus: "100",
         err: true,
         msg: "Se requiere un rol y un cargo.",
       });
     }
     // VALIDAMOS QUE EL USUARIO INGRESE UNA CONTRASEÑA VALIDA
     else if (usuariocontrasenya == "") {
-      return res.status(200).send({
-        estatus: "500",
+      return res.status(100).send({
+        estatus: "100",
         err: true,
         msg: "Se requiere una contraseña.",
       });
       // VALIDAMOS QUE SE LE ASIGNE UN SUELDO AL USUARIO
     } else if (usuariosalario == "") {
-      return res.status(200).send({
-        estatus: "500",
+      return res.status(100).send({
+        estatus: "100",
         err: true,
         msg: "Se requiere el salario del empleado.",
       });
@@ -162,7 +158,7 @@ app.post("/", async (req, res) => {
         (err, rows) => {
           // SI OCURRE UN ERROR CON LA CONSULTA SE MUESTRA EL ERROR
           if (err) {
-            return res.status(200).send({
+            return res.status(500).send({
               estatus: "500",
               err: true,
               msg: "Ocurrio un error.",
@@ -170,8 +166,8 @@ app.post("/", async (req, res) => {
             });
             // SI SE ENCONTRO EL CORREO SE MUESTRA EL MENSAJE DE CORREO REGISTRADO
           } else if (rows.length > 0) {
-            return res.status(200).send({
-              estatus: "500",
+            return res.status(100).send({
+              estatus: "100",
               err: true,
               msg: "Correo ya registrado.",
             });
@@ -192,7 +188,7 @@ app.post("/", async (req, res) => {
               ],
               (err) => {
                 if (err) {
-                  return res.status(200).send({
+                  return res.status(500).send({
                     estatus: "500",
                     err: true,
                     msg: "Ocurrio un error.",
@@ -241,8 +237,8 @@ app.put("/", async (req, res) => {
     let IDusuario = req.query.IDusuario;
     // SI SE ENVIA UN ID VACIO SE INDICA
     if (IDusuario == "") {
-      return res.status(200).send({
-        estatus: "500",
+      return res.status(100).send({
+        estatus: "100",
         err: true,
         msg: "Se necesita el ID del usuario.",
         err,
@@ -313,7 +309,7 @@ app.put("/", async (req, res) => {
                   // SI NO HUBO UN ERROR SE NOTIFICA QUE EL CLIENTE SE ACTUALIZO
                 } else {
                   return res.status(200).send({
-                    estatus: "500",
+                    estatus: "200",
                     err: false,
                     msg: "Usuario actualizado con exito.",
                   });
@@ -348,35 +344,34 @@ app.put("/pass", async (req, res) => {
     // DECLARAMOS EL PARAMETRO ID
     let IDusuario = req.query.IDusuario;
     // SI SE ENVIA UN ID VACIO SE INDICA
-    console.log(
-      usuariocontrasenyaold,
-      usuariocontrasenyanew,
-      usuariocontrasenyaconf
-    );
     if (IDusuario == "") {
-      return res.status(200).send({
-        estatus: "500",
+      return res.status(100).send({
+        estatus: "100",
         err: true,
         msg: "Se necesita el ID del usuario.",
         err,
       });
     } else {
+      // SE EJECUTA EL QUERY PARA BUSCAR UN USUARIO POR ID
       conn.query(
         "SELECT usuariocontrasenya FROM usuario WHERE IDusuario=?",
         [IDusuario],
         (err, rows) => {
+          // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
           if (err) {
-            return res.status(200).send({
+            return res.status(500).send({
               estatus: "500",
               err: true,
               msg: "Ocurrio un error.",
               err,
-            });
+            });            
           } else {
+            // SE COMPARA LA CONTRASEÑA DADA CON LA CONTRASEÑA EN LA BASE DE DATOS
             let coincide = bcrypt.compareSync(
               usuariocontrasenyaold,
               rows[0].usuariocontrasenya
             );
+            // SE COMPARA LA CONTRASEÑA NUEVA CON LA CONFIRMACION DE LA CONTRASEÑA
             if (usuariocontrasenyanew == usuariocontrasenyaconf) {
               if (coincide == true) {
                 // ENCRIPTAMOS LA CONTRASEÑA
@@ -384,10 +379,12 @@ app.put("/pass", async (req, res) => {
                   usuariocontrasenyanew,
                   10
                 );
+                // EJECUTAMOS LA QUERY PARA ACTUALIZAR LA CONTRASEÑA DEL USUARIO
                 conn.query(
                   "UPDATE usuario SET usuariocontrasenya=? WHERE IDusuario=?",
                   [usuariocontrasenyanew, IDusuario],
                   (err) => {
+                    // SI HUBO UN ERROR SE INDICA
                     if (err) {
                       return res.status(200).send({
                         estatus: "500",
@@ -396,6 +393,7 @@ app.put("/pass", async (req, res) => {
                         err,
                       });
                     } else {
+                      // SE ENVIA EL MENSAJE DE EXITO
                       return res.status(200).send({
                         estatus: "200",
                         err: false,
@@ -405,16 +403,18 @@ app.put("/pass", async (req, res) => {
                   }
                 );
               } else {
+                // SI LA CONTRASEÑA DADA NO COINCIDE CON LA CONTRASEÑA DE LA BASE DE DATOS SE INDICA 
                 return res.status(200).send({
-                  estatus: "500",
-                  err: false,
+                  estatus: "200",
+                  err: true,
                   msg: "La contraseña es diferente a la actual.",
                 });
               }
             } else {
+              //  SI LA CONTRASEÑA NUEVA NO COINCIDE CON LA CONFIRMACION DE LA CONTRASEÑA SE INDICA
               return res.status(200).send({
-                estatus: "500",
-                err: false,
+                estatus: "200",
+                err: true,
                 msg: "Las contraseñas no coinciden.",
               });
             }
@@ -454,6 +454,7 @@ app.delete("/", async (req, res) => {
         [IDusuario],
         (err) => {
           if (err) {
+            // SI HUBO UN ERROR CON LA CONSULTA SE MUESTRA
             return res.status(500).send({
               estatus: "500",
               err: true,
@@ -461,8 +462,9 @@ app.delete("/", async (req, res) => {
               err,
             });
           } else {
+            // SE MUESTRA EL MESAJE DE EXITO
             return res.status(200).send({
-              estatus: "500",
+              estatus: "200",
               err: false,
               msg: "Usuario desactivado con exito.",
             });
@@ -496,21 +498,24 @@ app.delete("/borrar", async (req, res) => {
         err,
       });
     } else {
+      // SE EJECUTA EL QUERY PARA ELIMINAR AL USUARIO DE LA BASE DE DATOS
       conn.query(
         "DELETE FROM usuario WHERE IDusuario=?",
         [IDusuario],
         (err) => {
           if (err) {
-            return res.status(200).send({
+            // SI HUBO UN ERROR EN LA QUERY SE INDICA
+            return res.status(500).send({
               estatus: "500",
               err: true,
-              msg: "Se necesita el ID del usuario.",
+              msg: "Ocurrio un error.",
               err,
             });
           } else {
+            // SE MUESTRA EL MENSAJE DE EXITO
             return res.status(200).send({
-              estatus: "500",
-              err: true,
+              estatus: "200",
+              err: false,
               msg: "Se elimino al usuario correctamente.",
               err,
             });
