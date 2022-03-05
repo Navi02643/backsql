@@ -4,6 +4,48 @@ const app = express();
 
 let conn = require("../config/db");
 
+// RUTA PARA OBTENER LOS ENCARGADOS DE PROYECTO
+app.get("/ENC", async (req, res) => {
+  try {
+    // SE EJECUTA EL QUERY PARA OBTENER A LOS ENCARGADOS DE PROYECTO
+    conn.query("SELECT * FROM usuario WHERE usuarioestado=1 AND (IDcargo=7 or IDcargo=8)", (err, rows) => {
+      if (err) {
+        // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
+        return res.status(500).send({
+          estatus: "500",
+          err: true,
+          msg: "Ocurrio un error.",
+          err,
+        });
+      } else if (rows.length > 0) {
+        // SI LOS ENCARGADOS DE PROYECTO SON MAYOR O IGUAL A UNO SE MUESTRAN
+        return res.status(200).send({
+          estatus: "200",
+          err: false,
+          msg: "ENCARGADOS DE PROYECTO.",
+          rows,
+        });
+      } else {
+        // SI NO HAY ENCARGADOS DE PROYECTO SE MUESTRA EL MENSAJE
+        return res.status(204).send({
+          estatus: "204",
+          err: false,
+          msg: "Sin ENCARGADOS DE PROYECTOs.",
+        });
+      }
+    });
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
 //RUTA PARA OBTENER LOS USUARIOS INACTIVOS
 app.get("/INA", async (req, res) => {
   try {
