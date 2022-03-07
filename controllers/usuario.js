@@ -4,11 +4,11 @@ const app = express();
 
 let conn = require("../config/db");
 
-// RUTA PARA OBTENER LOS ENCARGADOS DE PROYECTO
-app.get("/ENC", async (req, res) => {
+// RUTA PARA OBTENER TODOS LOS USUARIOS
+app.get("/", async (req, res) => {
   try {
     // SE EJECUTA EL QUERY PARA OBTENER A LOS ENCARGADOS DE PROYECTO
-    conn.query("SELECT * FROM usuario WHERE usuarioestado=1 AND (IDcargo=7 or IDcargo=8)", (err, rows) => {
+    conn.query("SELECT * FROM usuario WHERE IDusuario>0", (err, rows) => {
       if (err) {
         // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
         return res.status(500).send({
@@ -27,13 +27,104 @@ app.get("/ENC", async (req, res) => {
         });
       } else {
         // SI NO HAY ENCARGADOS DE PROYECTO SE MUESTRA EL MENSAJE
-        return res.status(204).send({
-          estatus: "204",
+        return res.status(200).send({
+          estatus: "200",
           err: false,
-          msg: "Sin ENCARGADOS DE PROYECTOs.",
+          msg: "Sin usuarios.",
         });
       }
     });
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+app.get("/user", async (req, res) => {
+  try {
+    // SE SOLICITA EL ID
+    let IDusuario = req.query.IDusuario;
+    // SE EJECUTA EL QUERY PARA OBTENER A LOS ENCARGADOS DE PROYECTO
+    conn.query(
+      "SELECT * FROM usuario WHERE IDusuario=?",
+      [IDusuario],
+      (err, rows) => {
+        if (err) {
+          // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else if (rows.length > 0) {
+          // SI LOS ENCARGADOS DE PROYECTO SON MAYOR O IGUAL A UNO SE MUESTRAN
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            rows: rows[0],
+          });
+        } else {
+          // SI NO HAY ENCARGADOS DE PROYECTO SE MUESTRA EL MENSAJE
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "Sin usuario.",
+          });
+        }
+      }
+    );
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA PARA OBTENER LOS ENCARGADOS DE PROYECTO
+app.get("/ENC", async (req, res) => {
+  try {
+    // SE EJECUTA EL QUERY PARA OBTENER A LOS ENCARGADOS DE PROYECTO
+    conn.query(
+      "SELECT * FROM usuario WHERE usuarioestado=1 AND (IDcargo=7 or IDcargo=8)",
+      (err, rows) => {
+        if (err) {
+          // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else if (rows.length > 0) {
+          // SI LOS ENCARGADOS DE PROYECTO SON MAYOR O IGUAL A UNO SE MUESTRAN
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "ENCARGADOS DE PROYECTO.",
+            rows,
+          });
+        } else {
+          // SI NO HAY ENCARGADOS DE PROYECTO SE MUESTRA EL MENSAJE
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "SIN ENCARGADOS DE PROYECTOS.",
+          });
+        }
+      }
+    );
   } catch (err) {
     return res.status(500).send({
       estatus: "500",
@@ -50,32 +141,35 @@ app.get("/ENC", async (req, res) => {
 app.get("/INA", async (req, res) => {
   try {
     // SE EJECUTA UNA QUERY PARA OBTENER A LOS USUARIOS INACTIVOS
-    conn.query("SELECT * FROM usuario WHERE usuarioestado=0", (err, rows) => {
-      if (err) {
-        // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
-        return res.status(500).send({
-          estatus: "500",
-          err: true,
-          msg: "Ocurrio un error.",
-          err,
-        });
-      } else if (rows.length > 0) {
-        // SI LOS USARIOS OBTENIDOS SON MAYORES O IGUALES A 1 SE MUNESTRAN
-        return res.status(200).send({
-          estatus: "200",
-          err: false,
-          msg: "Usuarios inactivos.",
-          rows,
-        });
-      } else {
-        // SI NO EXISTEN USUARIOS INACTIVOS SE MUESTRA EL MENSAJE
-        return res.status(204).send({
-          estatus: "204",
-          err: false,
-          msg: "Sin usuarios inactivos.",
-        });
+    conn.query(
+      "SELECT US.IDusuario,US.usuarionombres,US.usuarioapellidoP,US.usuarioapellidoM,US.usuarioemail, US.usuariotelefono,CA.cargonombre,RO.rolesnombre FROM usuario US INNER JOIN cargo CA ON CA.IDcargo=US.IDcargo INNER JOIN roles RO ON RO.IDroles=US.IDrol WHERE usuarioestado=0 AND usuarioestado>0;",
+      (err, rows) => {
+        if (err) {
+          // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else if (rows.length > 0) {
+          // SI LOS USARIOS OBTENIDOS SON MAYORES O IGUALES A 1 SE MUNESTRAN
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            SA: 1,
+            rows,
+          });
+        } else {
+          // SI NO EXISTEN USUARIOS INACTIVOS SE MUESTRA EL MENSAJE
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            SA: 0,
+          });
+        }
       }
-    });
+    );
   } catch (err) {
     return res.status(500).send({
       estatus: "500",
@@ -92,32 +186,35 @@ app.get("/INA", async (req, res) => {
 app.get("/ACT", async (req, res) => {
   try {
     // SE EJECUTA EL QUERY PARA OBTENER A LOS USUARIOS ACTIVOS
-    conn.query("SELECT * FROM usuario WHERE usuarioestado=1", (err, rows) => {
-      if (err) {
-        // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
-        return res.status(500).send({
-          estatus: "500",
-          err: true,
-          msg: "Ocurrio un error.",
-          err,
-        });
-      } else if (rows.length > 0) {
-        // SI LOS USUARIOS ACTIVOS SON MAYOR O IGUAL A UNO SE MUESTRAN
-        return res.status(200).send({
-          estatus: "200",
-          err: false,
-          msg: "Usuarios Activos.",
-          rows,
-        });
-      } else {
-        // SI NO HAY USUARIOS ACTIVOS SE MUESTRA EL MENSAJE
-        return res.status(204).send({
-          estatus: "204",
-          err: false,
-          msg: "Sin usuarios Activos.",
-        });
+    conn.query(
+      "SELECT * FROM usuario WHERE usuarioestado=1 AND IDusuario>0",
+      (err, rows) => {
+        if (err) {
+          // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else if (rows.length > 0) {
+          // SI LOS USUARIOS ACTIVOS SON MAYOR O IGUAL A UNO SE MUESTRAN
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "Usuarios Activos.",
+            rows,
+          });
+        } else {
+          // SI NO HAY USUARIOS ACTIVOS SE MUESTRA EL MENSAJE
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "Sin usuarios Activos.",
+          });
+        }
       }
-    });
+    );
   } catch (err) {
     return res.status(500).send({
       estatus: "500",
@@ -155,39 +252,39 @@ app.post("/", async (req, res) => {
       usuarioapellidoP == "" ||
       usuarioapellidoM == ""
     ) {
-      return res.status(100).send({
-        estatus: "100",
+      return res.status(200).send({
+        estatus: "200",
         err: true,
         msg: "Se requiere tu nombre completo.",
       });
     }
     // VALIDAMOS QUE EL USUARIO INGRESE UN CORREO
     else if (usuarioemail == "") {
-      return res.status(100).send({
-        estatus: "100",
+      return res.status(200).send({
+        estatus: "200",
         err: true,
         msg: "Se requiere un correo.",
       });
     }
     // VALIDAMOS QUE EL USUARIO INGRESE EL CARGO Y EL ROL
     else if (IDrol == "" || IDcargo == "") {
-      return res.status(100).send({
-        estatus: "100",
+      return res.status(200).send({
+        estatus: "200",
         err: true,
         msg: "Se requiere un rol y un cargo.",
       });
     }
     // VALIDAMOS QUE EL USUARIO INGRESE UNA CONTRASEÑA VALIDA
     else if (usuariocontrasenya == "") {
-      return res.status(100).send({
-        estatus: "100",
+      return res.status(200).send({
+        estatus: "200",
         err: true,
         msg: "Se requiere una contraseña.",
       });
       // VALIDAMOS QUE SE LE ASIGNE UN SUELDO AL USUARIO
     } else if (usuariosalario == "") {
-      return res.status(100).send({
-        estatus: "100",
+      return res.status(200).send({
+        estatus: "200",
         err: true,
         msg: "Se requiere el salario del empleado.",
       });
@@ -208,8 +305,8 @@ app.post("/", async (req, res) => {
             });
             // SI SE ENCONTRO EL CORREO SE MUESTRA EL MENSAJE DE CORREO REGISTRADO
           } else if (rows.length > 0) {
-            return res.status(100).send({
-              estatus: "100",
+            return res.status(200).send({
+              estatus: "200",
               err: true,
               msg: "Correo ya registrado.",
             });
@@ -271,16 +368,13 @@ app.put("/", async (req, res) => {
       usuarioapellidoM,
       usuarioemail,
       usuariotelefono,
-      IDrol,
-      IDcargo,
-      usuariosalario,
     } = req.body;
     // DECLARAMOS EL PARAMETRO ID
     let IDusuario = req.query.IDusuario;
     // SI SE ENVIA UN ID VACIO SE INDICA
     if (IDusuario == "") {
-      return res.status(100).send({
-        estatus: "100",
+      return res.status(200).send({
+        estatus: "200",
         err: true,
         msg: "Se necesita el ID del usuario.",
         err,
@@ -316,29 +410,99 @@ app.put("/", async (req, res) => {
             if (usuariotelefono == "") {
               usuariotelefono = rows[0].usuariotelefono;
             }
-            if (IDrol == "") {
-              IDrol = rows[0].IDrol;
-            }
-            if (IDcargo == "") {
-              IDcargo = rows[0].IDcargo;
-            }
-            if (usuariosalario == "") {
-              usuariosalario = rows[0].usuariosalario;
-            }
             // SE ACTUALIZA EL USUARIO
             conn.query(
-              "UPDATE usuario SET usuarionombres=?,usuarioapellidoP=?,usuarioapellidoM=?,usuarioemail=?,usuariotelefono=?,IDrol=?,IDcargo=?,usuariosalario=? WHERE IDusuario=?",
+              "UPDATE usuario SET usuarionombres=?,usuarioapellidoP=?,usuarioapellidoM=?,usuarioemail=?,usuariotelefono=? WHERE IDusuario=?",
               [
                 usuarionombres,
                 usuarioapellidoP,
                 usuarioapellidoM,
                 usuarioemail,
                 usuariotelefono,
-                IDrol,
-                IDcargo,
-                usuariosalario,
                 IDusuario,
               ],
+              (err) => {
+                // SI HUBO UN ERROR SE MUESTRA
+                if (err) {
+                  return res.status(500).send({
+                    estatus: "500",
+                    err: true,
+                    msg: "Ocurrio un error.",
+                    err,
+                  });
+                  // SI NO HUBO UN ERROR SE NOTIFICA QUE EL CLIENTE SE ACTUALIZO
+                } else {
+                  return res.status(200).send({
+                    estatus: "200",
+                    err: false,
+                    msg: "Usuario actualizado con exito.",
+                  });
+                }
+              }
+            );
+          }
+        }
+      );
+    }
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA  PARA ACTUALIZAR EL CARGO Y EL ROL
+app.put("/CR", async (req, res) => {
+  try {
+    // DECLARAMOS LAS VARIABLES QUE VAMOS A RECIBIR
+    let { IDrol, IDcargo, usuarioestado, usuariosalario } = req.body;
+    // DECLARAMOS EL PARAMETRO ID
+    let IDusuario = req.query.IDusuario;
+    // SI SE ENVIA UN ID VACIO SE INDICA
+    if (IDusuario == "") {
+      return res.status(200).send({
+        estatus: "200",
+        err: true,
+        msg: "Se necesita el ID del usuario.",
+        err,
+      });
+    } else {
+      // BUSCAMOS AL USUARIO POR EL ID
+      conn.query(
+        "SELECT * FROM usuario WHERE IDusuario=?",
+        [IDusuario],
+        (err, rows) => {
+          // SI OCURRE UN ERROR CON LA CONSULTA SE MUESTRA
+          if (err) {
+            return res.status(500).send({
+              estatus: "500",
+              err: true,
+              msg: "Ocurrio un error.",
+              err,
+            });
+          } else {
+            // SI ALGUNO DE LOS CAMPOS ESTA VACIO SE LE ASIGNA EL VALOR QUE TIENE EN LA BASE DE DATOS
+            if (IDrol == "") {
+              IDrol = rows[0].IDrol;
+            }
+            if (IDcargo == "") {
+              IDcargo = rows[0].IDcargo;
+            }
+            if (usuarioestado == "") {
+              usuarioestado = rows[0].usuarioestado;
+            }
+            if (usuariosalario == "") {
+              usuariosalario = rows[0].usuariosalario;
+            }
+            // SE ACTUALIZA EL USUARIO
+            conn.query(
+              "UPDATE usuario SET IDrol=?, IDcargo=?, usuarioestado=?,usuariosalario=? WHERE IDusuario=?",
+              [IDrol, IDcargo, usuarioestado, usuariosalario, IDusuario],
               (err) => {
                 // SI HUBO UN ERROR SE MUESTRA
                 if (err) {
@@ -387,8 +551,8 @@ app.put("/pass", async (req, res) => {
     let IDusuario = req.query.IDusuario;
     // SI SE ENVIA UN ID VACIO SE INDICA
     if (IDusuario == "") {
-      return res.status(100).send({
-        estatus: "100",
+      return res.status(200).send({
+        estatus: "200",
         err: true,
         msg: "Se necesita el ID del usuario.",
         err,
@@ -406,7 +570,7 @@ app.put("/pass", async (req, res) => {
               err: true,
               msg: "Ocurrio un error.",
               err,
-            });            
+            });
           } else {
             // SE COMPARA LA CONTRASEÑA DADA CON LA CONTRASEÑA EN LA BASE DE DATOS
             let coincide = bcrypt.compareSync(
@@ -445,7 +609,7 @@ app.put("/pass", async (req, res) => {
                   }
                 );
               } else {
-                // SI LA CONTRASEÑA DADA NO COINCIDE CON LA CONTRASEÑA DE LA BASE DE DATOS SE INDICA 
+                // SI LA CONTRASEÑA DADA NO COINCIDE CON LA CONTRASEÑA DE LA BASE DE DATOS SE INDICA
                 return res.status(200).send({
                   estatus: "200",
                   err: true,
@@ -526,6 +690,56 @@ app.delete("/", async (req, res) => {
   }
 });
 
+// RUTA PARA REACTIVAR USUARIO
+app.delete("/REAC", async (req, res) => {
+  try {
+    // DECLARAMOS EL PARAMETRO ID
+    let IDusuario = req.query.IDusuario;
+    // SI SE ENVIA UN ID VACIO SE INDICA
+    if (IDusuario == "") {
+      return res.status(200).send({
+        estatus: "500",
+        err: true,
+        msg: "Se necesita el ID del usuario.",
+        err,
+      });
+    } else {
+      // SE EJECUTA LA QUERY PARA DESACTIVAR EL USUARIO
+      conn.query(
+        "UPDATE usuario SET usuarioestado=1 WHERE IDusuario=?",
+        [IDusuario],
+        (err) => {
+          if (err) {
+            // SI HUBO UN ERROR CON LA CONSULTA SE MUESTRA
+            return res.status(500).send({
+              estatus: "500",
+              err: true,
+              msg: "Ocurrio un error.",
+              err,
+            });
+          } else {
+            // SE MUESTRA EL MESAJE DE EXITO
+            return res.status(200).send({
+              estatus: "200",
+              err: false,
+              msg: "Usuario activado con exito.",
+            });
+          }
+        }
+      );
+    }
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
 // RUTA PARA ELIMINAR LOS USUARIOS
 app.delete("/borrar", async (req, res) => {
   try {
@@ -551,7 +765,6 @@ app.delete("/borrar", async (req, res) => {
               estatus: "500",
               err: true,
               msg: "Ocurrio un error.",
-              err,
             });
           } else {
             // SE MUESTRA EL MENSAJE DE EXITO
@@ -559,7 +772,6 @@ app.delete("/borrar", async (req, res) => {
               estatus: "200",
               err: false,
               msg: "Se elimino al usuario correctamente.",
-              err,
             });
           }
         }
