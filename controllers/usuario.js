@@ -142,7 +142,7 @@ app.get("/INA", async (req, res) => {
   try {
     // SE EJECUTA UNA QUERY PARA OBTENER A LOS USUARIOS INACTIVOS
     conn.query(
-      "SELECT US.IDusuario,US.usuarionombres,US.usuarioapellidoP,US.usuarioapellidoM,US.usuarioemail, US.usuariotelefono,CA.cargonombre,RO.rolesnombre FROM usuario US INNER JOIN cargo CA ON CA.IDcargo=US.IDcargo INNER JOIN roles RO ON RO.IDroles=US.IDrol WHERE usuarioestado=0 AND usuarioestado>0;",
+      "SELECT US.IDusuario,US.usuarionombres,US.usuarioapellidoP,US.usuarioapellidoM,US.usuarioemail, US.usuariotelefono,CA.cargonombre,RO.rolesnombre FROM usuario US INNER JOIN cargo CA ON CA.IDcargo=US.IDcargo INNER JOIN roles RO ON RO.IDroles=US.IDrol WHERE usuarioestado=0 AND IDusuario>0;",
       (err, rows) => {
         if (err) {
           // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
@@ -247,19 +247,22 @@ app.post("/", async (req, res) => {
     usuariocontrasenya = bcrypt.hashSync(usuariocontrasenya, 10);
 
     // VALIDAMOS QUE EL USUARIO INGRESE SU NOMBRE COMPLETO
-    if (
-      usuarionombres == "" ||
-      usuarioapellidoP == "" ||
-      usuarioapellidoM == ""
-    ) {
+    if (usuarionombres == "" || usuarioapellidoP == "") {
       return res.status(200).send({
         estatus: "200",
         err: true,
         msg: "Se requiere tu nombre completo.",
       });
-    }
-    // VALIDAMOS QUE EL USUARIO INGRESE UN CORREO
-    else if (usuarioemail == "") {
+    } else if (usuarioapellidoM.length == 1) {
+      if (usuarioapellidoM != "x" || usuarioapellidoM != "X") {
+        return res.status(200).send({
+          estatus: "200",
+          err: true,
+          msg: "Ingresa una x como segundo apellido si no lo tienes.",
+        });
+      }
+      // VALIDAMOS QUE EL USUARIO INGRESE UN CORREO
+    } else if (usuarioemail == "") {
       return res.status(200).send({
         estatus: "200",
         err: true,
@@ -311,6 +314,9 @@ app.post("/", async (req, res) => {
               msg: "Correo ya registrado.",
             });
           } else {
+            if (usuarioapellidoM == "") {
+              usuarioapellidoM = "X";
+            }
             // SI TODO ESTA CORRECTO SE HACE EL REGISTRO EN LA BASE DE DATOS
             conn.query(
               "INSERT INTO usuario(usuarionombres,usuarioapellidoP,usuarioapellidoM,usuarioemail,usuariotelefono,IDrol,usuariocontrasenya,IDcargo,usuariosalario) VALUES(?,?,?,?,?,?,?,?,?)",
@@ -336,7 +342,7 @@ app.post("/", async (req, res) => {
                 } else {
                   return res.status(200).send({
                     estatus: "200",
-                    err: false,
+                    err: false,                    
                     msg: `Se inserto al usuario ${usuarionombres} ${usuarioapellidoP} ${usuarioapellidoM} con exito.`,
                   });
                 }
