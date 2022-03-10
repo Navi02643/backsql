@@ -1,7 +1,14 @@
 const { createLogger, format, transports } = require("winston");
 
 let date = new Date();
-let fecha = String(date.getDate()).padStart(2, '0') + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + date.getFullYear();
+let fecha =
+  String(date.getDate()).padStart(2, "0") +
+  "-" +
+  String(date.getMonth() + 1).padStart(2, "0") +
+  "-" +
+  date.getFullYear();
+
+let cantidad = String(date.getMonth() + 1).padStart(2, "0")
 
 module.exports = createLogger({
   format: format.combine(
@@ -14,11 +21,8 @@ module.exports = createLogger({
   transports: [
     new transports.File({
       maxsize: 5120000,
-      maxFiles: 10,
-      filename: `${__dirname}/log-api_${fecha}.log `,
-    }),
-    new transports.Console({
-      level: "debug",
+      maxFiles: cantidad,
+      filename: `${__dirname}/log-api_${fecha}.txt`,
     }),
   ],
 });

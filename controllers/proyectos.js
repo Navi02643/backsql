@@ -138,6 +138,53 @@ app.get("/estado", async (req, res) => {
   }
 });
 
+// RUTA PARA OBTENER LOS PROYECTOS DEPENDIENDO DEL ESTADO
+app.get("/usuario", async (req, res) => {
+  try {
+    let IDusuario = req.query.IDusuario;
+    // SE EJECUTA UNA QUERY PARA OBTENER TODOS LOS PROYECTOS
+    conn.query(
+      "SELECT PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDusuario = ?",
+      [IDusuario],
+      (err, rows) => {
+        if (err) {
+          // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else if (rows.length > 0) {
+          // SI LOS PROYECTOS SON MAYOR O IGUAL A UNO SE MUESTRAN
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "PROYECTOS.",
+            rows,
+          });
+        } else {
+          // SI NO EXISTEN PROYECTOS SE MUESTRA
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "SIN PROYECTOS.",
+          });
+        }
+      }
+    );
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
 // RUTA PARA REGISTRAR UN PROYECTO
 app.post("/", async (req, res) => {
   try {
@@ -251,6 +298,13 @@ app.put("/", async (req, res) => {
               err,
             });
           } else {
+            logger.warn(`
+            SE ACTUALIZO EL PROYECTO CON EL ID: ${IDproyecto}              
+              Datos Nuevos:
+                Nombre: ${proyectonombre},
+                Descripcion: ${proyectodescripcion},
+                IDEncargado: ${IDusuario}
+            `)
             // SI TODO SALIO BIEN SE INDICA
             return res.status(200).send({
               estatus: "200",
@@ -278,7 +332,7 @@ app.put("/pause", async (req, res) => {
   try {
     let IDproyecto = req.query.IDproyecto;
     conn.query(
-      "UPDATE proyecto SET IDestado=6 WHERE  IDproyecto=?",
+      "UPDATE proyecto SET IDestado=6 WHERE IDproyecto=?",
       [IDproyecto],
       (err) => {
         if (err) {
@@ -290,6 +344,7 @@ app.put("/pause", async (req, res) => {
             err,
           });
         } else {
+          logger.warn(`SE PAUSO EL PROYECTO CON EL ID: ${IDproyecto}`)
           // SI TODO SALIO BIEN SE INDICA
           return res.status(200).send({
             estatus: "200",
@@ -311,6 +366,7 @@ app.put("/pause", async (req, res) => {
   }
 });
 
+// RUTA PARA ELIMINAR UN PROYECTO
 app.delete("/", async (req, res) => {
   try {
     let IDproyecto = req.query.IDproyecto;
@@ -324,6 +380,7 @@ app.delete("/", async (req, res) => {
           err,
         });
       } else {
+        logger.info(`SE ELIMINO EL PROYECTO CON ID ${IDproyecto}`)
         // SI TODO SALIO BIEN SE INDICA
         return res.status(200).send({
           estatus: "200",

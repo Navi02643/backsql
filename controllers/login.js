@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 
 let conn = require("../config/db");
+const logger = require('../logs/logger');
 
 app.post("/", async (req, res) => {
   try {
@@ -31,6 +32,7 @@ app.post("/", async (req, res) => {
               rows[0].usuariocontrasenya
             );
             if (coincide == true) {
+            logger.info(`INGRESO EL USUARIO ${rows[0].usuarionombres} ${rows[0].usuarioapellidoP} ${rows[0].usuarioapellidoM}`)
               res.status(200).send({
                 estatus: "500",
                 err: false,

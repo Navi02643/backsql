@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 
 let conn = require("../config/db");
+const logger = require("../logs/logger");
 
 // RUTA PARA OBTENER TODOS LOS USUARIOS
 app.get("/", async (req, res) => {
@@ -340,9 +341,18 @@ app.post("/", async (req, res) => {
                     err,
                   });
                 } else {
+                  logger.info(
+                    `SE INSERTO UN USUARIO:                
+                      Nombres: ${usuarionombres},
+                      Primer apellido: ${usuarioapellidoP},
+                      Segundo apellido: ${usuarioapellidoM},
+                      Correo: ${usuarioemail},
+                      Telefono: ${usuariotelefono}
+                    `
+                  );
                   return res.status(200).send({
                     estatus: "200",
-                    err: false,                    
+                    err: false,
                     msg: `Se inserto al usuario ${usuarionombres} ${usuarioapellidoP} ${usuarioapellidoM} con exito.`,
                   });
                 }
@@ -438,6 +448,22 @@ app.put("/", async (req, res) => {
                   });
                   // SI NO HUBO UN ERROR SE NOTIFICA QUE EL CLIENTE SE ACTUALIZO
                 } else {
+                  logger.warn(
+                    `SE ACTUALIZO UN USUARIO, 
+                    Datos anteriores:  
+                      Nombres: ${rows[0].usuarionombres},
+                      Primer apellido: ${rows[0].usuarioapellidoP},
+                      Segundo apellido: ${rows[0].usuarioapellidoM},
+                      Correo: ${rows[0].usuarioemail},
+                      Telefono: ${rows[0].usuariotelefono}
+                    Datos nuevos: 
+                      Nombres: ${usuarionombres},
+                      Primer apellido: ${usuarioapellidoP},
+                      Segundo apellido: ${usuarioapellidoM},
+                      Correo: ${usuarioemail},
+                      Telefono: ${usuariotelefono}
+                    `
+                  );
                   return res.status(200).send({
                     estatus: "200",
                     err: false,
@@ -520,6 +546,19 @@ app.put("/CR", async (req, res) => {
                   });
                   // SI NO HUBO UN ERROR SE NOTIFICA QUE EL CLIENTE SE ACTUALIZO
                 } else {
+                  logger.warn(`
+                  SE ACTUALIZO UN USUARIO: ID DEL USUARIO: ${IDusuario}
+                    Datos Anteriores:
+                      Rol: ${rows[0].IDrol},
+                      Cargo: ${rows[0].IDcargo},
+                      Salario: ${rows[0].usuariosalario}.
+                      Estado: ${rows[0].usuarioestado}
+                    Datos Nuevos:
+                      Rol: ${IDrol},
+                      Cargo: ${IDcargo},
+                      Salario: ${usuariosalario}.
+                      Estado: ${usuarioestado}
+                  `);
                   return res.status(200).send({
                     estatus: "200",
                     err: false,
@@ -605,6 +644,9 @@ app.put("/pass", async (req, res) => {
                         err,
                       });
                     } else {
+                      logger.warn(
+                        `EL USUARIO CON ID: ${IDusuario} CAMBIO SU CONTRASEÑA`
+                      );
                       // SE ENVIA EL MENSAJE DE EXITO
                       return res.status(200).send({
                         estatus: "200",
@@ -674,6 +716,7 @@ app.delete("/", async (req, res) => {
               err,
             });
           } else {
+            logger.warn(`SE DESACTIVO AL USUARIO CON EL ID: ${IDusuario}`);
             // SE MUESTRA EL MESAJE DE EXITO
             return res.status(200).send({
               estatus: "200",
@@ -724,6 +767,7 @@ app.delete("/REAC", async (req, res) => {
               err,
             });
           } else {
+            logger.warn(`SE REACTIVO AL USUARIO CON EL ID: ${IDusuario}`);
             // SE MUESTRA EL MESAJE DE EXITO
             return res.status(200).send({
               estatus: "200",
@@ -773,6 +817,7 @@ app.delete("/borrar", async (req, res) => {
               msg: "Ocurrio un error.",
             });
           } else {
+            logger.warn(`SE ELIMINO AL USUARIO ${IDusuario}`);
             // SE MUESTRA EL MENSAJE DE EXITO
             return res.status(200).send({
               estatus: "200",
