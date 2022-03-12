@@ -222,16 +222,16 @@ app.put("/", async (req, res) => {
         if (err) {
         } else if (row.length > 0) {
           if (IDproyecto == "") {
-              IDproyecto = row[0].IDproyecto;
+            IDproyecto = row[0].IDproyecto;
           }
           if (IDusuario == "") {
-              IDusuario = row[0].IDusuario;
+            IDusuario = row[0].IDusuario;
           }
           if (tareanombre == "") {
-              tareanombre = row[0].tareanombre;
+            tareanombre = row[0].tareanombre;
           }
           if (tareadescripcion == "") {
-              tareadescripcion = row[0].tareadescripcion;
+            tareadescripcion = row[0].tareadescripcion;
           }
           conn.query(
             "UPDATE tareas SET IDproyecto=?, IDusuario=?, tareanombre=?, tareadescripcion=? WHERE IDtarea=?",
@@ -241,9 +241,9 @@ app.put("/", async (req, res) => {
               } else {
                 logger.warn(` SE ACTUALIZO EL PROYECTO CON ID: ${IDtarea}
                 Datos Antiguos:
-                    Nombre: ${tareanombre},
-                    Descripcion: ${tareadescripcion},
-                    Encargado: ${IDusuario},                    
+                    Nombre: ${row[0].tareanombre},
+                    Descripcion: ${row[0].tareadescripcion},
+                    Encargado: ${row[0].IDusuario},                    
                 Datos Nuevos:
                     Nombre: ${tareanombre},
                     Descripcion: ${tareadescripcion},
@@ -269,8 +269,46 @@ app.put("/", async (req, res) => {
 });
 
 // RUTA PARA PAUSAR UNA TAREA
-app.put("/", async (req, res) => {
+app.put("/estado", async (req, res) => {
   try {
+    let estado = req.body.estado;
+    let IDtarea = req.query.IDtarea;
+    conn.query(
+      "SELECT * FROM tareas WHERE IDtarea=?",
+      [IDtarea],
+      (err, row) => {
+        if (err) {
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else {
+          conn.query(
+            "UPDATE tareas SET IDestado=? WHERE IDtarea=?",
+            [estado, IDtarea],
+            (err) => {
+              if (err) {
+                return res.status(500).send({
+                  estatus: "500",
+                  err: true,
+                  msg: "Ocurrio un error.",
+                  err,
+                });
+              } else {
+                logger.warn(`LA TAREA ${row[0].tareanombre} CAMBIO DE ESTADO`);
+                return res.status(200).send({
+                  estatus: "200",
+                  err: false,
+                  msg: "Tarea modificada",
+                });
+              }
+            }
+          );
+        }
+      }
+    );
   } catch (err) {
     return res.status(500).send({
       estatus: "500",
@@ -286,6 +324,24 @@ app.put("/", async (req, res) => {
 // RUTA PARA ELIMINAR UNA TAREA
 app.delete("/", async (req, res) => {
   try {
+    let IDtarea = req.query.IDtarea;
+    conn.query("DELETE FROM tareas WHERE IDtarea=?", [IDtarea], (err) => {
+      if (err) {
+        return res.status(500).send({
+          estatus: "500",
+          err: true,
+          msg: "Ocurrio un error.",
+          err,
+        });
+      } else {
+        logger.warn(`LA TAREA CON ID ${IDtarea} FUE ELIMINADA`);
+        return res.status(200).send({
+          estatus: "200",
+          err: false,
+          msg: "Tarea eliminada.",
+        });
+      }
+    });
   } catch (err) {
     return res.status(500).send({
       estatus: "500",
