@@ -1,2 +1,13 @@
 /node_modules
-/logs/*.txt
+/logs/ArchivosLogs/Enero/*.txt
+/logs/ArchivosLogs/Febrero/*.txt
+/logs/ArchivosLogs/Marzo/*.txt
+/logs/ArchivosLogs/Abril/*.txt
+/logs/ArchivosLogs/Mayo/*.txt
+/logs/ArchivosLogs/Junio/*.txt
+/logs/ArchivosLogs/Julio/*.txt
+/logs/ArchivosLogs/Agosto/*.txt
+/logs/ArchivosLogs/Septiembre/*.txt
+/logs/ArchivosLogs/Octubre/*.txt
+/logs/ArchivosLogs/Noviembre/*.txt
+/logs/ArchivosLogs/Diciembre/*.txt

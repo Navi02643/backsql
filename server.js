@@ -29,3 +29,5 @@ app.use("/api", require("./controllers/index"));
 app.listen(app.get("port"), () => {
   console.log("[SERVER]".green, `Se ejecuta en el puerto ${app.get("port")}`);
 });
+
+logger.info('Se incio el servidor')
