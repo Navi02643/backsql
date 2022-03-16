@@ -8,7 +8,7 @@ const logger = require('../logs/logger');
 app.get("/", async (req, res) => {
   try {
     // SE EJECUTA UNA QUERY PARA OBTENER TODOS LOS PROYECTOS
-    conn.query("SELECT PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDestado != 5", (err, rows) => {
+    conn.query("SELECT PO.IDproyecto,PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDestado != 5 AND PO.IDestado != 6", (err, rows) => {
       if (err) {
         // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
         return res.status(500).send({
@@ -51,7 +51,7 @@ app.get("/cancel", async (req, res) => {
   try {
     // SE EJECUTA UNA QUERY PARA OBTENER TODOS LOS PROYECTOS
     conn.query(
-      "SELECT PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDestado = 5",
+      "SELECT PO.IDproyecto,PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDestado = 5",
       (err, rows) => {
         if (err) {
           // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
@@ -67,6 +67,7 @@ app.get("/cancel", async (req, res) => {
             estatus: "200",
             err: false,
             msg: "PROYECTOS.",
+            SA: 1,
             rows,
           });
         } else {
@@ -75,6 +76,7 @@ app.get("/cancel", async (req, res) => {
             estatus: "200",
             err: false,
             msg: "SIN PROYECTOS.",
+            SA: 0,
           });
         }
       }
@@ -97,7 +99,7 @@ app.get("/estado", async (req, res) => {
     let estado = req.query.estado;
     // SE EJECUTA UNA QUERY PARA OBTENER TODOS LOS PROYECTOS
     conn.query(
-      "SELECT PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDestado = ?",
+      "SELECT PO.IDproyecto,PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDestado = ?",
       [estado],
       (err, rows) => {
         if (err) {
