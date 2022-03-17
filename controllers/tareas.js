@@ -352,10 +352,10 @@ app.put("/", async (req, res) => {
 app.put("/estado", async (req, res) => {
   try {
     let estado = req.body.estado;
-    let IDtarea = req.query.IDtarea;
+    let IDtareas = req.query.IDtareas;
     conn.query(
-      "SELECT * FROM tareas WHERE IDtarea=?",
-      [IDtarea],
+      "SELECT * FROM tareas WHERE IDtareas=?",
+      [IDtareas],
       (err, row) => {
         if (err) {
           return res.status(500).send({
@@ -366,8 +366,8 @@ app.put("/estado", async (req, res) => {
           });
         } else {
           conn.query(
-            "UPDATE tareas SET IDestado=? WHERE IDtarea=?",
-            [estado, IDtarea],
+            "UPDATE tareas SET IDestado=? WHERE IDtareas=?",
+            [estado, IDtareas],
             (err) => {
               if (err) {
                 return res.status(500).send({
@@ -404,8 +404,8 @@ app.put("/estado", async (req, res) => {
 // RUTA PARA ELIMINAR UNA TAREA
 app.delete("/", async (req, res) => {
   try {
-    let IDtarea = req.query.IDtarea;
-    conn.query("DELETE FROM tareas WHERE IDtarea=?", [IDtarea], (err) => {
+    let IDtareas = req.query.IDtareas;
+    conn.query("DELETE FROM tareas WHERE IDtareas=?", [IDtareas], (err) => {
       if (err) {
         return res.status(500).send({
           estatus: "500",
@@ -414,7 +414,7 @@ app.delete("/", async (req, res) => {
           err,
         });
       } else {
-        logger.warn(`LA TAREA CON ID ${IDtarea} FUE ELIMINADA`);
+        logger.warn(`LA TAREA CON ID ${IDtareas} FUE ELIMINADA`);
         return res.status(200).send({
           estatus: "200",
           err: false,
