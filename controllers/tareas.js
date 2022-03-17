@@ -8,7 +8,7 @@ const logger = require("../logs/logger");
 app.get("/", async (req, res) => {
   try {
     conn.query(
-      "SELECT TA.IDtarea,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado!=5",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario",
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -43,7 +43,7 @@ app.get("/", async (req, res) => {
 app.get("/cancel", async (req, res) => {
   try {
     conn.query(
-      "SELECT TA.IDtarea,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=5",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=5",
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -79,7 +79,7 @@ app.get("/estado", async (req, res) => {
   try {
     let estado = req.query.estado;
     conn.query(
-      "SELECT TA.IDtarea,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=?",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=?",
       [estado],
       (err, rows) => {
         if (err) {
@@ -151,7 +151,13 @@ app.get("/usuario", async (req, res) => {
 // RUTA PARA REGISTRAR UNA TAREA
 app.post("/", async (req, res) => {
   try {
-    let { IDproyecto, IDusuario, tareanombre, tareadescripcion } = req.body;
+    let { IDproyecto, IDusuario, tareanombre, tareadescripcion, tareafechaf } =
+      req.body;
+    let date = new Date();
+    let dia = String(date.getDate()).padStart(2, "0");
+    let mes = String(date.getMonth() + 1).padStart(2, "0");
+    let anyo = date.getFullYear();
+    let fechaini = anyo + "-" + mes + "-" + dia;
     if (IDproyecto == "") {
       return res.status(500).send({
         estatus: "500",
@@ -175,10 +181,26 @@ app.post("/", async (req, res) => {
         msg: "Se requiere el nombre de la tarea.",
         err,
       });
+    }
+    if (tareadescripcion == "") {
+      return res.status(500).send({
+        estatus: "500",
+        err: true,
+        msg: "Se requiere la descripción de la tarea.",
+        err,
+      });
+    }
+    if (tareafechaf == "") {
+      return res.status(500).send({
+        estatus: "500",
+        err: true,
+        msg: "Se requiere la fecha de finalización de la tarea.",
+        err,
+      });
     } else {
       conn.query(
-        "INSERT INTO tareas(IDproyecto, IDusuario, tareanombre, tareadescripcion) VALUES(?,?,?,?)",
-        [IDproyecto, IDusuario, tareanombre, tareadescripcion],
+        "INSERT INTO tareas(IDproyecto, IDusuario, tareanombre, tareadescripcion, FechaInicio,FechaEntrega) VALUES(?,?,?,?,?,?)",
+        [IDproyecto, IDusuario, tareanombre, tareadescripcion,fechaini, tareafechaf],
         (err) => {
           if (err) {
             return res.status(500).send({
@@ -213,41 +235,54 @@ app.post("/", async (req, res) => {
 // RUTA PARA ACTUALIZAR UNA TAREA
 app.put("/", async (req, res) => {
   try {
-    let { IDproyecto, IDusuario, tareanombre, tareadescripcion } = req.body;
-    let IDtarea = req.query.IDtarea;
+    let { IDproyecto, IDusuario, tareanombre, tareadescripcion, tareafechaf } =
+      req.body;
+    let IDtareas = req.query.IDtareas;
     conn.query(
-      "SELECT * FROM tareas WHERE IDtarea=?",
-      [IDtarea],
+      "SELECT * FROM tareas WHERE IDtareas=?",
+      [IDtareas],
       (err, row) => {
         if (err) {
         } else if (row.length > 0) {
-          if (IDproyecto == "") {
-            IDproyecto = row[0].IDproyecto;
-          }
-          if (IDusuario == "") {
-            IDusuario = row[0].IDusuario;
-          }
+          // if (IDproyecto == "") {
+          //   IDproyecto = row[0].IDproyecto;
+          // }
+          // if (IDusuario == "") {
+          //   IDusuario = row[0].IDusuario;
+          // }
           if (tareanombre == "") {
             tareanombre = row[0].tareanombre;
           }
           if (tareadescripcion == "") {
             tareadescripcion = row[0].tareadescripcion;
           }
+          if (tareafechaf == "") {
+            tareafechaf = row[0].tareafechaf;
+          }
           conn.query(
-            "UPDATE tareas SET IDproyecto=?, IDusuario=?, tareanombre=?, tareadescripcion=? WHERE IDtarea=?",
-            [IDproyecto, IDusuario, tareanombre, tareadescripcion, IDtarea],
+            "UPDATE tareas SET tareanombre=?, tareadescripcion=?, tareafechaf=? WHERE IDtareas=?",
+            [
+              // IDproyecto,
+              // IDusuario,
+              tareanombre,
+              tareadescripcion,
+              tareafechaf,
+              IDtareas,
+            ],
             (err) => {
               if (err) {
               } else {
-                logger.warn(` SE ACTUALIZO EL PROYECTO CON ID: ${IDtarea}
+                logger.warn(` SE ACTUALIZÓ EL PROYECTO CON ID: ${IDtareas}
                 Datos Antiguos:
                     Nombre: ${row[0].tareanombre},
                     Descripcion: ${row[0].tareadescripcion},
-                    Encargado: ${row[0].IDusuario},                    
+                    Encargado: ${row[0].IDusuario},    
+                    Fecha de Finalización: ${row[0].tareafechaf}                
                 Datos Nuevos:
                     Nombre: ${tareanombre},
                     Descripcion: ${tareadescripcion},
-                    Encargado: ${IDusuario},                    
+                    Encargado: ${IDusuario},        
+                    Fecha de Finalización: ${tareafechaf},  
                 `);
               }
             }
@@ -272,10 +307,10 @@ app.put("/", async (req, res) => {
 app.put("/estado", async (req, res) => {
   try {
     let estado = req.body.estado;
-    let IDtarea = req.query.IDtarea;
+    let IDtareas = req.query.IDtareas;
     conn.query(
-      "SELECT * FROM tareas WHERE IDtarea=?",
-      [IDtarea],
+      "SELECT * FROM tareas WHERE IDtareas=?",
+      [IDtareas],
       (err, row) => {
         if (err) {
           return res.status(500).send({
@@ -286,8 +321,8 @@ app.put("/estado", async (req, res) => {
           });
         } else {
           conn.query(
-            "UPDATE tareas SET IDestado=? WHERE IDtarea=?",
-            [estado, IDtarea],
+            "UPDATE tareas SET IDestado=? WHERE IDtareas=?",
+            [estado, IDtareas],
             (err) => {
               if (err) {
                 return res.status(500).send({
@@ -324,8 +359,8 @@ app.put("/estado", async (req, res) => {
 // RUTA PARA ELIMINAR UNA TAREA
 app.delete("/", async (req, res) => {
   try {
-    let IDtarea = req.query.IDtarea;
-    conn.query("DELETE FROM tareas WHERE IDtarea=?", [IDtarea], (err) => {
+    let IDtareas = req.query.IDtareas;
+    conn.query("DELETE FROM tareas WHERE IDtareas=?", [IDtareas], (err) => {
       if (err) {
         return res.status(500).send({
           estatus: "500",
@@ -334,7 +369,7 @@ app.delete("/", async (req, res) => {
           err,
         });
       } else {
-        logger.warn(`LA TAREA CON ID ${IDtarea} FUE ELIMINADA`);
+        logger.warn(`LA TAREA CON ID ${IDtareas} FUE ELIMINADA`);
         return res.status(200).send({
           estatus: "200",
           err: false,
