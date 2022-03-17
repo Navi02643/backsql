@@ -151,7 +151,13 @@ app.get("/usuario", async (req, res) => {
 // RUTA PARA REGISTRAR UNA TAREA
 app.post("/", async (req, res) => {
   try {
-    let { IDproyecto, IDusuario, tareanombre, tareadescripcion } = req.body;
+    let { IDproyecto, IDusuario, tareanombre, tareadescripcion, tareafechaf } =
+      req.body;
+    let date = new Date();
+    let dia = String(date.getDate()).padStart(2, "0");
+    let mes = String(date.getMonth() + 1).padStart(2, "0");
+    let anyo = date.getFullYear();
+    let fechaini = anyo + "-" + mes + "-" + dia;
     if (IDproyecto == "") {
       return res.status(500).send({
         estatus: "500",
@@ -175,10 +181,26 @@ app.post("/", async (req, res) => {
         msg: "Se requiere el nombre de la tarea.",
         err,
       });
+    }
+    if (tareadescripcion == "") {
+      return res.status(500).send({
+        estatus: "500",
+        err: true,
+        msg: "Se requiere la descripción de la tarea.",
+        err,
+      });
+    }
+    if (tareafechaf == "") {
+      return res.status(500).send({
+        estatus: "500",
+        err: true,
+        msg: "Se requiere la fecha de finalización de la tarea.",
+        err,
+      });
     } else {
       conn.query(
-        "INSERT INTO tareas(IDproyecto, IDusuario, tareanombre, tareadescripcion) VALUES(?,?,?,?)",
-        [IDproyecto, IDusuario, tareanombre, tareadescripcion],
+        "INSERT INTO tareas(IDproyecto, IDusuario, tareanombre, tareadescripcion, FechaInicio,FechaEntrega) VALUES(?,?,?,?,?,?)",
+        [IDproyecto, IDusuario, tareanombre, tareadescripcion,fechaini, tareafechaf],
         (err) => {
           if (err) {
             return res.status(500).send({
@@ -213,14 +235,21 @@ app.post("/", async (req, res) => {
 // RUTA PARA ACTUALIZAR UNA TAREA
 app.put("/", async (req, res) => {
   try {
-    let { IDproyecto, IDusuario, tareanombre, tareadescripcion } = req.body;
-    let IDtarea = req.query.IDtarea;
+    let { IDproyecto, IDusuario, tareanombre, tareadescripcion, tareafechaf } =
+      req.body;
+    let IDtareas = req.query.IDtareas;
     conn.query(
-      "SELECT * FROM tareas WHERE IDtarea=?",
-      [IDtarea],
+      "SELECT * FROM tareas WHERE IDtareas=?",
+      [IDtareas],
       (err, row) => {
         if (err) {
-        } else if (row.length > 0) {
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else if (row.length > 0) {  
           if (IDproyecto == "") {
             IDproyecto = row[0].IDproyecto;
           }
@@ -233,26 +262,55 @@ app.put("/", async (req, res) => {
           if (tareadescripcion == "") {
             tareadescripcion = row[0].tareadescripcion;
           }
+          if (tareafechaf == "") {
+            tareafechaf = row[0].tareafechaf;
+          }
           conn.query(
-            "UPDATE tareas SET IDproyecto=?, IDusuario=?, tareanombre=?, tareadescripcion=? WHERE IDtarea=?",
-            [IDproyecto, IDusuario, tareanombre, tareadescripcion, IDtarea],
+            "UPDATE tareas SET IDproyecto=?, IDusuario=?, tareanombre=?, tareadescripcion=?, FechaEntrega=? WHERE IDtareas=?",
+            [
+              IDproyecto,
+              IDusuario,
+              tareanombre,
+              tareadescripcion,
+              tareafechaf,
+              IDtareas,
+            ],
             (err) => {
               if (err) {
+                return res.status(500).send({
+                  estatus: "500",
+                  err: true,
+                  msg: "Ocurrio un error.",
+                  err,
+                });
               } else {
-                logger.warn(` SE ACTUALIZO EL PROYECTO CON ID: ${IDtarea}
+                logger.warn(` SE ACTUALIZO EL PROYECTO CON ID: ${IDtareas}
                 Datos Antiguos:
                     Nombre: ${row[0].tareanombre},
                     Descripcion: ${row[0].tareadescripcion},
-                    Encargado: ${row[0].IDusuario},                    
+                    Encargado: ${row[0].IDusuario},    
+                    Fecha de Finalización: ${row[0].tareafechaf}                
                 Datos Nuevos:
                     Nombre: ${tareanombre},
                     Descripcion: ${tareadescripcion},
-                    Encargado: ${IDusuario},                    
+                    Encargado: ${IDusuario},        
+                    Fecha de Finalización: ${tareafechaf},  
                 `);
+                return res.status(200).send({
+                  estatus: "200",
+                  err: false,
+                  msg: "Se actualizo la tarea.",
+                });
               }
             }
           );
         } else {
+          return res.status(200).send({
+            estatus: "200",
+            err: true,
+            msg: "Sin tareas.",
+            err,
+          });
         }
       }
     );
