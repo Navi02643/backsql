@@ -8,7 +8,7 @@ const logger = require("../logs/logger");
 app.get("/", async (req, res) => {
   try {
     conn.query(
-      "SELECT TA.IDtarea,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado!=5",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado!=5",
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -43,7 +43,7 @@ app.get("/", async (req, res) => {
 app.get("/cancel", async (req, res) => {
   try {
     conn.query(
-      "SELECT TA.IDtarea,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=5",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=5",
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -53,10 +53,15 @@ app.get("/cancel", async (req, res) => {
             err,
           });
         } else {
+          if (rows.length > 0) {
+            msg = "Tareas obtenidas con exito";
+          } else {
+            msg = "Sin tareas encontradas";
+          }
           return res.status(200).send({
             estatus: "200",
             err: false,
-            msg: "Tareas obtenidas con exito.",
+            msg: msg,
             rows,
           });
         }
@@ -79,7 +84,7 @@ app.get("/estado", async (req, res) => {
   try {
     let estado = req.query.estado;
     conn.query(
-      "SELECT TA.IDtarea,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=?",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=?",
       [estado],
       (err, rows) => {
         if (err) {
@@ -90,10 +95,15 @@ app.get("/estado", async (req, res) => {
             err,
           });
         } else {
+          if (rows.length > 0) {
+            msg = "Tareas obtenidas con exito";
+          } else {
+            msg = "Sin tareas encontradas";
+          }
           return res.status(200).send({
             estatus: "200",
             err: false,
-            msg: "Tareas obtenidas con exito.",
+            msg: msg,
             rows,
           });
         }
@@ -116,7 +126,7 @@ app.get("/usuario", async (req, res) => {
   try {
     let IDusuario = req.query.IDusuario;
     conn.query(
-      "SELECT PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDusuario=?",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDusuario=?",
       [IDusuario],
       (err, rows) => {
         if (err) {
@@ -127,10 +137,15 @@ app.get("/usuario", async (req, res) => {
             err,
           });
         } else {
+          if (rows.length > 0) {
+            msg = "Tareas obtenidas con exito";
+          } else {
+            msg = "Sin tareas encontradas";
+          }
           return res.status(200).send({
             estatus: "200",
             err: false,
-            msg: "Tareas obtenidas con exito.",
+            msg: msg,
             rows,
           });
         }
@@ -200,7 +215,14 @@ app.post("/", async (req, res) => {
     } else {
       conn.query(
         "INSERT INTO tareas(IDproyecto, IDusuario, tareanombre, tareadescripcion, FechaInicio,FechaEntrega) VALUES(?,?,?,?,?,?)",
-        [IDproyecto, IDusuario, tareanombre, tareadescripcion,fechaini, tareafechaf],
+        [
+          IDproyecto,
+          IDusuario,
+          tareanombre,
+          tareadescripcion,
+          fechaini,
+          tareafechaf,
+        ],
         (err) => {
           if (err) {
             return res.status(500).send({
@@ -249,7 +271,7 @@ app.put("/", async (req, res) => {
             msg: "Ocurrio un error.",
             err,
           });
-        } else if (row.length > 0) {  
+        } else if (row.length > 0) {
           if (IDproyecto == "") {
             IDproyecto = row[0].IDproyecto;
           }
