@@ -285,7 +285,7 @@ app.put("/", async (req, res) => {
             tareadescripcion = row[0].tareadescripcion;
           }
           if (tareafechaf == "") {
-            tareafechaf = row[0].tareafechaf;
+            tareafechaf = row[0].FechaEntrega;
           }
           conn.query(
             "UPDATE tareas SET IDproyecto=?, IDusuario=?, tareanombre=?, tareadescripcion=?, FechaEntrega=? WHERE IDtareas=?",
