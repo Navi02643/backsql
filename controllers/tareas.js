@@ -233,11 +233,29 @@ app.post("/", async (req, res) => {
             });
           } else {
             logger.info(`SE REGISTRO LA TAREA: ${tareanombre}`);
-            return res.status(200).send({
-              estatus: "200",
-              err: false,
-              msg: `Se registro la tarea: ${tareanombre}`,
-            });
+            conn.query(
+              "UPDATE proyecto SET IDestado=2 WHERE IDproyecto=?",
+              [IDproyecto],
+              (err) => {
+                if (err) {
+                  return res.status(500).send({
+                    estatus: "500",
+                    err: true,
+                    msg: "Ocurrio un error.",
+                    err,
+                  });
+                } else {
+                  logger.info(
+                    `EL PROYECTO CON ID: ${IDproyecto} COMENZO SU DESARROLLO`
+                  );
+                  return res.status(200).send({
+                    estatus: "200",
+                    err: false,
+                    msg: `Se registro la tarea: ${tareanombre}`,
+                  });
+                }
+              }
+            );
           }
         }
       );
