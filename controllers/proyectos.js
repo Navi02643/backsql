@@ -146,7 +146,7 @@ app.get("/usuario", async (req, res) => {
     let IDusuario = req.query.IDusuario;
     // SE EJECUTA UNA QUERY PARA OBTENER TODOS LOS PROYECTOS
     conn.query(
-      "SELECT PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDusuario = ?",
+      "SELECT PO.IDproyecto,PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDusuario = ?",
       [IDusuario],
       (err, rows) => {
         if (err) {
