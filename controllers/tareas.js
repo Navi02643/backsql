@@ -8,7 +8,44 @@ const logger = require("../logs/logger");
 app.get("/", async (req, res) => {
   try {
     conn.query(
-      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado!=5",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado!=5 ORDER BY TA.IDestado,TA.IDtareas",
+      (err, rows) => {
+        if (err) {
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            err,
+          });
+        } else {
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "Tareas obtenidas con exito.",
+            rows,
+          });
+        }
+      }
+    );
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+// RUTA PARA OBTENER UNA TAREA EN ESPECIFICO
+app.get("/tarea", async (req, res) => {
+  try {
+    let IDtareas = req.query.IDtareas;
+    conn.query(
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDtareas=? ",
+      [IDtareas],
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -275,8 +312,7 @@ app.post("/", async (req, res) => {
 // RUTA PARA ACTUALIZAR UNA TAREA
 app.put("/", async (req, res) => {
   try {
-    let { IDproyecto, IDusuario, tareanombre, tareadescripcion, tareafechaf } =
-      req.body;
+    let { IDusuario, tareanombre, tareadescripcion, tareafechaf } = req.body;
     let IDtareas = req.query.IDtareas;
     conn.query(
       "SELECT * FROM tareas WHERE IDtareas=?",
@@ -290,9 +326,6 @@ app.put("/", async (req, res) => {
             err,
           });
         } else if (row.length > 0) {
-          if (IDproyecto == "") {
-            IDproyecto = row[0].IDproyecto;
-          }
           if (IDusuario == "") {
             IDusuario = row[0].IDusuario;
           }
@@ -306,15 +339,8 @@ app.put("/", async (req, res) => {
             tareafechaf = row[0].FechaEntrega;
           }
           conn.query(
-            "UPDATE tareas SET IDproyecto=?, IDusuario=?, tareanombre=?, tareadescripcion=?, FechaEntrega=? WHERE IDtareas=?",
-            [
-              IDproyecto,
-              IDusuario,
-              tareanombre,
-              tareadescripcion,
-              tareafechaf,
-              IDtareas,
-            ],
+            "UPDATE tareas SET IDusuario=?, tareanombre=?, tareadescripcion=?, FechaEntrega=? WHERE IDtareas=?",
+            [IDusuario, tareanombre, tareadescripcion, tareafechaf, IDtareas],
             (err) => {
               if (err) {
                 return res.status(500).send({
@@ -440,6 +466,44 @@ app.delete("/", async (req, res) => {
         });
       }
     });
+  } catch (err) {
+    return res.status(500).send({
+      estatus: "500",
+      err: true,
+      msg: "Ocurrio un error.",
+      cont: {
+        err: Object.keys(err).length === 0 ? err.message : err,
+      },
+    });
+  }
+});
+
+app.delete("/react", async (req, res) => {
+  try {
+    let IDtareas = req.query.IDtareas;
+    conn.query(
+      "UPDATE tareas SET IDestado=2 WHERE IDtareas=?",
+      [IDtareas],
+      (err) => {
+        if (err) {
+          return res.status(500).send({
+            estatus: "500",
+            err: true,
+            msg: "Ocurrio un error.",
+            cont: {
+              err: Object.keys(err).length === 0 ? err.message : err,
+            },
+          });
+        } else {
+          logger.warn(`LA TAREA CON ID ${IDtareas} FUE REACTIVADA`);
+          return res.status(200).send({
+            estatus: "200",
+            err: false,
+            msg: "Tarea reactivada.",
+          });
+        }
+      }
+    );
   } catch (err) {
     return res.status(500).send({
       estatus: "500",
