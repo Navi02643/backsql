@@ -4,6 +4,8 @@ const app = express();
 let conn = require("../config/db");
 const logger = require("../logs/logger");
 
+let meses = ("","JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")
+
 // RUTA PARA OBTENER TODAS LAS TAREAS QUE NO ESTEN CANCELADAS
 app.get("/", async (req, res) => {
   try {
@@ -326,7 +328,7 @@ app.put("/", async (req, res) => {
             err,
           });
         } else if (row.length > 0) {
-          if (IDusuario == "") {
+          if (IDusuario == "" || IDusuario===undefined) {
             IDusuario = row[0].IDusuario;
           }
           if (tareanombre == "") {
@@ -336,8 +338,16 @@ app.put("/", async (req, res) => {
             tareadescripcion = row[0].tareadescripcion;
           }
           if (tareafechaf == "") {
-            tareafechaf = row[0].FechaEntrega;
+            tareafechaf = row[0].FechaEntrega;          
           }
+          let fechalog =  String(row[0].FechaEntrega);
+          let diaBD = fechalog.substr(8,2);
+          let mesBD = fechalog.substr(4,3);
+          let anioBD = fechalog.substr(11,4);
+          fechalog = diaBD+"-"+mesBD+"-"+anioBD
+          if(row[0].FechaEntrega == tareafechaf){
+            tareafechaf = fechalog;
+          }        
           conn.query(
             "UPDATE tareas SET IDusuario=?, tareanombre=?, tareadescripcion=?, FechaEntrega=? WHERE IDtareas=?",
             [IDusuario, tareanombre, tareadescripcion, tareafechaf, IDtareas],
@@ -355,7 +365,7 @@ app.put("/", async (req, res) => {
                     Nombre: ${row[0].tareanombre},
                     Descripcion: ${row[0].tareadescripcion},
                     Encargado: ${row[0].IDusuario},    
-                    Fecha de Finalización: ${row[0].tareafechaf}                
+                    Fecha de Finalización: ${fechalog}                
                 Datos Nuevos:
                     Nombre: ${tareanombre},
                     Descripcion: ${tareadescripcion},
