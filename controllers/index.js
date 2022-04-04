@@ -7,5 +7,6 @@ app.use('/cargos',require('./cargos'));
 app.use('/role',require('./roles'));
 app.use('/proyectos',require('./proyectos'));
 app.use('/tareas',require('./tareas'));
+app.use('/estados',require('./estados'));
 
 module.exports = app;

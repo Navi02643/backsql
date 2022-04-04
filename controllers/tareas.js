@@ -164,9 +164,10 @@ app.get("/estado", async (req, res) => {
 app.get("/usuario", async (req, res) => {
   try {
     let IDusuario = req.query.IDusuario;
+    let IDproyecto = req.query.IDproyecto;
     conn.query(
-      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDusuario=?",
-      [IDusuario],
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion,ES.IDestado, ES.nombreestatus,TA.FechaEntrega FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE PO.IDproyecto=? AND TA.IDusuario=?  ORDER BY TA.FechaEntrega ASC",
+      [IDproyecto,IDusuario],
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -431,7 +432,7 @@ app.put("/estado", async (req, res) => {
                   err,
                 });
               } else {
-                logger.warn(`LA TAREA ${row[0].tareanombre} CAMBIO DE ESTADO`);
+                logger.warn(`LA TAREA ${row[0].tareanombre} CAMBIO DE ESTADO A ESTADO ${estado}`);
                 return res.status(200).send({
                   estatus: "200",
                   err: false,
