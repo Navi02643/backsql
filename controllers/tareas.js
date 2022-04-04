@@ -10,7 +10,7 @@ let meses = ("","JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV
 app.get("/", async (req, res) => {
   try {
     conn.query(
-      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado!=5 ORDER BY TA.IDestado,TA.IDtareas",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus,TA.FechaEntrega FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado!=5 ORDER BY TA.IDtareas",
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -46,7 +46,7 @@ app.get("/tarea", async (req, res) => {
   try {
     let IDtareas = req.query.IDtareas;
     conn.query(
-      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDtareas=? ",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus,TA.FechaEntrega FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDtareas=? ",
       [IDtareas],
       (err, rows) => {
         if (err) {
@@ -82,7 +82,7 @@ app.get("/tarea", async (req, res) => {
 app.get("/cancel", async (req, res) => {
   try {
     conn.query(
-      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=5",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus,TA.FechaEntrega FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=5",
       (err, rows) => {
         if (err) {
           return res.status(500).send({
@@ -123,7 +123,7 @@ app.get("/estado", async (req, res) => {
   try {
     let estado = req.query.estado;
     conn.query(
-      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=?",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion, ES.nombreestatus,TA.FechaEntrega FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE TA.IDestado=?",
       [estado],
       (err, rows) => {
         if (err) {
@@ -166,7 +166,7 @@ app.get("/usuario", async (req, res) => {
     let IDusuario = req.query.IDusuario;
     let IDproyecto = req.query.IDproyecto;
     conn.query(
-      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,'',US.usuarioapellidoP,'',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion,ES.IDestado, ES.nombreestatus,TA.FechaEntrega FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE PO.IDproyecto=? AND TA.IDusuario=?  ORDER BY TA.FechaEntrega ASC",
+      "SELECT TA.IDtareas,PO.proyectonombre,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'usuario',TA.tareanombre,TA.tareadescripcion,ES.IDestado, ES.nombreestatus,TA.FechaEntrega FROM tareas TA INNER JOIN proyecto PO ON PO.IDproyecto=TA.IDproyecto INNER JOIN usuario US ON US.IDusuario = TA.IDusuario INNER JOIN estado ES ON ES.IDestado=TA.IDestado WHERE PO.IDproyecto=? AND TA.IDusuario=?  ORDER BY TA.FechaEntrega ASC",
       [IDproyecto,IDusuario],
       (err, rows) => {
         if (err) {
