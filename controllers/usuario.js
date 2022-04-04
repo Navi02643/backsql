@@ -98,7 +98,7 @@ app.get("/ENC", async (req, res) => {
   try {
     // SE EJECUTA EL QUERY PARA OBTENER A LOS ENCARGADOS DE PROYECTO
     conn.query(
-      "SELECT * FROM usuario WHERE usuarioestado=1",
+      "SELECT * FROM usuario WHERE usuarioestado=1 AND IDusuario>0",
       (err, rows) => {
         if (err) {
           // SI HUBO UN ERROR EN LA CONSULTA SE INDICA
