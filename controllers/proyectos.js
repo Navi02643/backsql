@@ -195,7 +195,7 @@ app.get("/proyecto", async (req, res) => {
     let IDproyecto = req.query.IDproyecto;
     // SE EJECUTA UNA QUERY PARA OBTENER TODOS LOS PROYECTOS
     conn.query(
-      "SELECT PO.IDproyecto,PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre' FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDproyecto = ?",
+      "SELECT PO.IDproyecto,PO.proyectonombre, PO.proyectodescripcion, ES.nombreestatus,CONCAT(US.usuarionombres,' ',US.usuarioapellidoP,' ',US.usuarioapellidoM) AS 'nombre',PO.IDusuario,PO.IDestado FROM proyecto PO INNER JOIN estado ES ON ES.IDestado=PO.IDestado INNER JOIN usuario US ON US.IDusuario=PO.IDusuario WHERE PO.IDproyecto = ?",
       [IDproyecto],
       (err, rows) => {
         if (err) {
@@ -354,6 +354,9 @@ app.put("/", async (req, res) => {
             if (IDusuario == "") {
               IDusuario = rows[0].IDusuario;
             }
+            if (IDestado == "") {
+              IDestado = rows[0].IDestado;
+            }
             conn.query(
               "UPDATE proyecto SET proyectonombre=?, proyectodescripcion=?, IDusuario=?,IDestado=? WHERE IDproyecto=?",
               [
@@ -373,7 +376,6 @@ app.put("/", async (req, res) => {
                     err,
                   });
                 } else {
-                  console.log(rows[0].IDestado)
                   logger.warn(`
                 SE ACTUALIZO EL PROYECTO CON EL ID: ${IDproyecto}              
                 Datos Nuevos:
