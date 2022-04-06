@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-app.use("/api", require("./controllers/index"));
+app.use("/api", require("./src/controllers/index"));
 
 app.listen(app.get("port"), () => {
   console.log("[SERVER]".green, `Se ejecuta en el puerto ${app.get("port")}`);
